@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PicPay Simplificado - Cadastro de Usuário</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      background-color: #119747; /* PicPay green */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: #333;
+    }
+    .container {
+      background-color: #fff;
+      padding: 40px;
+      border-radius: 15px; /* Rounded corners for the central block */
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      width: 90%;
+      max-width: 450px;
+      box-sizing: border-box;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      color: #119747; /* PicPay green */
+      font-size: 2.5em;
+      margin: 0;
+      padding-top: 20px;
+      font-weight: bold;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #555;
+    }
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="password"],
+    select {
+      width: calc(100% - 22px);
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 1em;
+    }
+    button {
+      background-color: #119747; /* PicPay green */
+      color: white;
+      padding: 15px 25px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.1em;
+      width: 100%;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #0e7c3b; /* Darker green on hover */
+    }
+    .message {
+      margin-top: 25px;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .message.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .navigation-buttons {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 30px;
+      gap: 10px;
+    }
+    .navigation-buttons button {
+      background-color: #119747;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      flex-grow: 1;
+      transition: background-color 0.3s ease;
+    }
+    .navigation-buttons button:hover {
+      background-color: #0e7c3b;
+    }
+    @media (max-width: 480px) {
+      .navigation-buttons {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>PicPay</h1>
+    <h2>Cadastro de Usuário</h2>
+  </div>
+
+  <div class="form-section">
+    <div class="form-group">
+      <label for="firstName">Primeiro Nome:</label>
+      <input type="text" id="firstName" required>
+    </div>
+    <div class="form-group">
+      <label for="lastName">Sobrenome:</label>
+      <input type="text" id="lastName" required>
+    </div>
+    <div class="form-group">
+      <label for="document">Documento (CPF/CNPJ):</label>
+      <input type="text" id="document" required>
+    </div>
+    <div class="form-group">
+      <label for="balance">Saldo:</label>
+      <input type="number" id="balance" step="0.01" required>
+    </div>
+    <div class="form-group">
+      <label for="email">E-mail:</label>
+      <input type="email" id="email" required>
+    </div>
+    <div class="form-group">
+      <label for="password">Senha:</label>
+      <input type="password" id="password" required>
+    </div>
+    <div class="form-group">
+      <label for="userType">Tipo de Usuário:</label>
+      <select id="userType" required>
+        <option value="COMMON">COMUM</option>
+        <option value="MERCHANT">LOJISTA</option>
+      </select>
+    </div>
+    <button onclick="createUser()">Cadastrar Usuário</button>
+    <div id="createUserMessage" class="message"></div>
+  </div>
+
+  <div class="navigation-buttons">
+    <button onclick="location.href='transacao.html'">Realizar Transação</button>
+    <button onclick="location.href='listar_usuarios.html'">Listar Usuários</button>
+  </div>
+</div>
+
+<script>
+  const API_BASE_URL = 'http://localhost:8080';
+
+  async function postData(url, data, messageElementId) {
+    const messageElement = document.getElementById(messageElementId);
+    messageElement.textContent = '';
+    messageElement.className = 'message';
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+
+      const responseData = await response.json();
+
+      if (response.ok) {
+        messageElement.classList.add('success');
+        messageElement.textContent = 'Usuário criado com sucesso!';
+      } else {
+        messageElement.classList.add('error');
+        if (responseData && responseData.message) {
+          messageElement.textContent = `Erro (${responseData.statusCode || response.status}): ${responseData.message}`;
+        } else {
+          messageElement.textContent = `Erro: ${response.status} ${response.statusText || 'Erro desconhecido'}`;
+        }
+      }
+    } catch (error) {
+      messageElement.classList.add('error');
+      messageElement.textContent = `Erro de rede: ${error.message}. Verifique se o backend está em execução e acessível.`;
+    }
+  }
+
+  function createUser() {
+    const firstName = document.getElementById('firstName').value;
+    const lastName = document.getElementById('lastName').value;
+    const documentVal = document.getElementById('document').value;
+    const balance = parseFloat(document.getElementById('balance').value);
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const userType = document.getElementById('userType').value;
+
+    const userData = {
+      firstName,
+      lastName,
+      document: documentVal,
+      balance,
+      email,
+      password,
+      userType
+    };
+
+    postData(`${API_BASE_URL}/users`, userData, 'createUserMessage');
+  }
+</script>
+</body>
+</html>
