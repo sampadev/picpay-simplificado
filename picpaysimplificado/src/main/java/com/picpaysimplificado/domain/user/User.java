@@ -1,8 +1,11 @@
 package com.picpaysimplificado.domain.user;
 
+import com.picpaysimplificado.dtos.UserDTO;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.util.Objects;
+
+
 
 @Entity(name = "users")
 @Table(name = "users")
@@ -123,5 +126,15 @@ public class User {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public User(UserDTO data){
+        this.firstName = data.firstName();
+        this.lastName = data.lastName();
+        this.balance = data.balance();
+        this.userType = data.userType();
+        this.password = data.password();
+        this.email = data.email();
+        this.document = data.document();
     }
 }
