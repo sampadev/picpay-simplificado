@@ -18,7 +18,6 @@ public class ControllerExceptionHandler {
     }
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity threat404 (EntityNotFoundException exception){
-        ExceptionDTO exceptionDTO = new ExceptionDTO("Usuario ja cadastrado", "400");
         return ResponseEntity.notFound().build();
     }
     @ExceptionHandler(Exception.class)
