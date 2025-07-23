@@ -4,6 +4,7 @@ package com.picpaysimplificado.services;
 import com.picpaysimplificado.domain.transaction.Transaction;
 import com.picpaysimplificado.domain.user.User;
 import com.picpaysimplificado.dtos.TransactionDTO;
+import com.picpaysimplificado.exceptions.TransactionAuthorizationException;
 import com.picpaysimplificado.repositories.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,7 +39,7 @@ public class TransactionService {
 
         boolean isAuthorized = this.authorizeTransaction(sender, transaction.value());
         if (!isAuthorized) {
-            throw new Exception("Transação não Autorizada");
+            throw new TransactionAuthorizationException("Transação não autorizada. Por favor, tente novamente.");
         }
 
         Transaction newTransaction = new Transaction();
