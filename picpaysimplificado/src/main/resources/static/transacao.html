@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>PicPay Simplificado - Transação</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            background-color: #119747;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 450px;
+            box-sizing: border-box;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #119747;
+            font-size: 2.5em;
+            margin: 0;
+            padding-top: 20px;
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="number"] {
+            width: calc(100% - 22px);
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+        button {
+            background-color: #119747;
+            color: white;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0e7c3b;
+        }
+        .message {
+            margin-top: 25px;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+            gap: 10px;
+        }
+        .navigation-buttons button {
+            background-color: #119747;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            flex-grow: 1;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0e7c3b;
+        }
+        @media (max-width: 480px) {
+            .navigation-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>PicPay</h1>
+        <h2>Realizar Transação</h2>
+    </div>
+
+    <div class="form-section">
+        <div class="form-group">
+            <label for="transactionValue">Valor:</label>
+            <input type="number" id="transactionValue" step="0.01" required />
+        </div>
+        <div class="form-group">
+            <label for="senderId">ID do Remetente:</label>
+            <input type="number" id="senderId" required />
+        </div>
+        <div class="form-group">
+            <label for="receiverId">ID do Beneficiário:</label>
+            <input type="number" id="receiverId" required />
+        </div>
+        <button onclick="makeTransaction()">Realizar Transação</button>
+        <div id="makeTransactionMessage" class="message"></div>
+    </div>
+
+    <div class="navigation-buttons">
+        <button onclick="location.href='cadastro_usuario.html'">Cadastrar Usuário</button>
+        <button onclick="location.href='listar_usuarios.html'">Listar Usuários</button>
+    </div>
+</div>
+
+<script>
+    const API_BASE_URL = 'http://localhost:8080';
+
+    async function postData(url, data, messageElementId) {
+        const messageElement = document.getElementById(messageElementId);
+        messageElement.textContent = '';
+        messageElement.className = 'message';
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            const responseData = await response.json();
+
+            if (!response.ok) {
+                messageElement.classList.add('error');
+
+
+                const errorContent = responseData.message || JSON.stringify(responseData);
+
+
+                if (errorContent.includes('403 Forbidden: "{status: "fail",data: {authorization: false}}" (Código: 500)')) {
+                    messageElement.textContent = 'Transação não autorizada, tente novamente.';
+                }
+
+                else if (errorContent.includes('MERCHANT')) {
+                    messageElement.textContent = 'Usuário do tipo lojista não pode realizar transferências.';
+                } else if (errorContent.includes('Saldo')) {
+                    messageElement.textContent = 'Saldo insuficiente para realizar a transação.';
+                } else if (errorContent.includes('Transação não Autorizada')) {
+                    messageElement.textContent = 'Transação não autorizada, tente novamente.';
+                }
+                else {
+
+                    messageElement.textContent = `Erro do Servidor: ${errorContent || response.statusText || 'Erro desconhecido.'} (Código: ${responseData.statusCode || response.status})`;
+                }
+            } else {
+                messageElement.classList.add('success');
+                messageElement.textContent = 'Transação efetuada com sucesso!';
+            }
+        } catch (error) {
+            messageElement.classList.add('error');
+            messageElement.textContent = `Erro de rede: ${error.message}. Verifique se o backend está em execução e acessível.`;
+        }
+    }
+
+    function makeTransaction() {
+        const value = parseFloat(document.getElementById('transactionValue').value);
+        const senderId = parseInt(document.getElementById('senderId').value);
+        const receiverId = parseInt(document.getElementById('receiverId').value);
+
+        const transactionData = {
+            value,
+            senderId,
+            receiverId,
+        };
+
+        postData(`${API_BASE_URL}/transactions`, transactionData, 'makeTransactionMessage');
+    }
+</script>
+</body>
+</html>
